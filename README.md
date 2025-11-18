@@ -1,6 +1,6 @@
-# Keepass CLI Wrappers
-This repository contains wrapper scripts for a more interactive experience with [keepassxc-cli](https://www.mankier.com/1/keepassxc-cli).
+# Keepass CLI Wrapper
+This repository contains a wrapper script for a more interactive experience with [keepassxc-cli](https://www.mankier.com/1/keepassxc-cli).
 
 # Dependencies
 - [fzf](https://github.com/junegunn/fzf): Fuzzy finder CLI tool
-- [bash] (https://www.gnu.org/software/bash)
+- [bash](https://www.gnu.org/software/bash)

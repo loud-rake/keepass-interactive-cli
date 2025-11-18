@@ -1,40 +1,42 @@
 #!/usr/bin/env bash
-set -x
 
 # Defaults database to ~/Passwords.kdbx
-if [[ -z $1 ]]; then
+if [ -z $1 ]; then
 	# '~/Passwords.kdbx' does not work for some reason, but this does.
 	database="$HOME/Passwords.kdbx"
 else
 	database="$1"
 fi
 
+red='\033[0;31m'
 # Check that database exists.
-if [[ ! -e "$database" ]]; then
-	echo "$database doesn't exist."
+if [ ! -e "$database" ]; then
+	echo -e "$red $database doesn't exist."
 	exit 1
 fi
 
 # Grab key credentials
-echo -n "Enter database's password:"
+echo "Enter database's password:"
 read -s password
 
 # Verify the credentials are gtg, print keepassxc's error message if not.
 if ! $(keepassxc-cli ls "$database" <<< "$password" &> /dev/null); then
-	keepassxc-cli ls "$database" <<< "$password"
+	keepassxc-cli ls "$database" <<< "$password" \
+	2> >(grep -v "Enter password to unlock")
 	exit 1
 fi
 
 # Use fuzzy search to grab a selection from the database
 get_entry() {
-	read -d '\n' -a database_entries <<< \
+	mapfile -d "\n" database_entries <<< \
 		$(keepassxc-cli ls -R "$database" <<< "$password" \
-		# The "Enter password to unlock" line is in stderr.
 		2> >(grep -v "Enter password to unlock"))
+		# The "Enter password to unlock" line is in stderr.
+
 	while true; do
 		selection=$(printf '%s\n' "${database_entries[@]}" | fzf)
-		if [[ -z $selection ]]; then
-			echo 'You have not selected an entry!'
+		if [ -z $selection ]; then
+			echo -e "$red You have not selected an entry!"
 			# Leave the user time to read the message
 			# (or close the script)
 			sleep 1.5
@@ -56,7 +58,7 @@ copy_entry_password() {
 		2> >(grep -v "Enter password to unlock")
 }
 
-copy_entry_totp () {
+copy_entry_totp() {
 	keepassxc-cli clip --totp "$database" "$selection" <<< "$password" \
 		2> >(grep -v "Enter password to unlock")
 }
@@ -65,14 +67,14 @@ add_entry() {
 	keepassxc-cli add "$generate" --username "$entry_username" \
 		--url "$entry_url" --notes "$entry_notes" "$database" \
 		"$entry_title" <<< "$password" \
-		> >(grep -v "Enter password to unlock") && echo "Done."
+		2> >(grep -v "Enter password to unlock") && echo "Done."
 }
 
 edit_entry() {
 	keepassxc-cli edit "$generate" --username "$entry_username" \
 		--url "$entry_url" --notes "$entry_notes" \
 		--title "$entry_title" "$database" "$selection" <<< "$password" \
-		> >(grep -v "Enter password to unlock") && echo "Done."
+		2> >(grep -v "Enter password to unlock") && echo "Done."
 }
 
 add_edit_entry() {
@@ -81,8 +83,8 @@ add_edit_entry() {
 			while true; do
 				echo "Entry's title:"
 				read entry_title
-				if [[ -z "$entry_title" ]]; then
-					echo "You have to provide a title."
+				if [ -z "$entry_title" ]; then
+					echo -e "$red You have to provide a title."
 					continue
 				else
 					break
@@ -93,7 +95,7 @@ add_edit_entry() {
 			while true; do
 				echo "Entry's title (Enter to not change it):"
 				read entry_title
-				if [[ -z "$entry_title" ]]; then
+				if [ -z "$entry_title" ]; then
 					entry_title="$selection"
 					break
 				else
@@ -126,7 +128,7 @@ add_edit_entry() {
 				break
 				;;
 			*)
-				echo "Imvalid input!"
+				echo -e "$red Imvalid input!"
 				continue
 				;;
 		esac
@@ -185,7 +187,7 @@ while true; do
 			exit 0
 			;;
 		*)
-			echo "Invalid input!"
+			echo -e "$red Invalid input!"
 			;;
 	esac
 done
