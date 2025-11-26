@@ -1,3 +1,4 @@
+Fuck this, just use [pass](https://www.passwordstore.org)
 # Keepass CLI Wrapper
 This repository contains a wrapper script for a more interactive experience with [keepassxc-cli](https://www.mankier.com/1/keepassxc-cli).
 
